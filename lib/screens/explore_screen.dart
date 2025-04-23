@@ -92,8 +92,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 ElevatedButton(
                   onPressed: _searchBooks,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  backgroundColor: Colors.deepPurple,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  foregroundColor: Colors.white, 
                   ),
                   child: const Text('Search'),
                 ),
