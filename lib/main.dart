@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
+      debugShowCheckedModeBanner: false, // Hides the debug banner
       home: const LoginScreen(),
     );
   }
