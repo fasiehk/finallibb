@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:finallibb/services/book_service.dart';
 import 'package:finallibb/widgets/book_card.dart';
+import 'package:provider/provider.dart';
+import '../providers/saved_books_provider.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -113,12 +115,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     title: book.title,
                     author: book.author,
                     coverId: book.coverId,
-                    onSave: () {
-                      // Implement save functionality
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('${book.title} saved!')),
-                      );
-                    },
+                    bookKey: book.key, // Pass the book key
                   );
                 },
               ),

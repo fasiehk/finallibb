@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
+import '../providers/saved_books_provider.dart';
+import '../services/book_service.dart';
 
 class BookCard extends StatelessWidget {
   final String title;
   final String author;
   final int? coverId;
-  final VoidCallback onSave;
+  final String bookKey;
 
   const BookCard({
     super.key,
     required this.title,
     required this.author,
     this.coverId,
-    required this.onSave,
+    required this.bookKey,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isSaved = Provider.of<SavedBooksProvider>(context)
+        .isBookSaved(bookKey); // Check if the book is saved
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -29,15 +34,13 @@ class BookCard extends StatelessWidget {
           children: [
             // Book Cover Image
             if (coverId != null)
-              CachedNetworkImage(
-                imageUrl: 'https://covers.openlibrary.org/b/id/$coverId-L.jpg',
-                placeholder: (context, url) =>
-                    const CircularProgressIndicator(),
-                errorWidget: (context, url, error) =>
-                    const Icon(Icons.broken_image, size: 50),
+              Image.network(
+                'https://covers.openlibrary.org/b/id/$coverId-L.jpg',
                 width: 50,
                 height: 75,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.broken_image, size: 50),
               )
             else
               const Icon(Icons.book, size: 50, color: Colors.grey),
@@ -69,10 +72,39 @@ class BookCard extends StatelessWidget {
                 ],
               ),
             ),
-            // Save Button
+            // Save/Unsave Button
             IconButton(
-              onPressed: onSave,
-              icon: const Icon(Icons.bookmark_add, color: Colors.deepPurple),
+              onPressed: () async {
+                if (isSaved) {
+                  // Remove the book if it is already saved
+                  await Provider.of<SavedBooksProvider>(context, listen: false)
+                      .removeBook(Book(
+                    title: title,
+                    author: author,
+                    key: bookKey,
+                    coverId: coverId,
+                  ));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('$title removed!')),
+                  );
+                } else {
+                  // Save the book if it is not already saved
+                  await Provider.of<SavedBooksProvider>(context, listen: false)
+                      .addBook(Book(
+                    title: title,
+                    author: author,
+                    key: bookKey,
+                    coverId: coverId,
+                  ));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('$title saved!')),
+                  );
+                }
+              },
+              icon: Icon(
+                isSaved ? Icons.bookmark_remove : Icons.bookmark_add,
+                color: Colors.deepPurple,
+              ),
             ),
           ],
         ),

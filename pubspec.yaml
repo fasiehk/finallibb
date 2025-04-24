@@ -36,6 +36,7 @@ dependencies:
   cached_network_image: ^3.2.3
   intl: ^0.18.0 # Added intl package for date formatting
   fluttertoast: ^8.2.1
+  provider: ^6.1.3
 dev_dependencies:
   flutter_test:
     sdk: flutter
