@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'signup_screen.dart';
 import 'homepage.dart';
 
@@ -20,17 +21,32 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
       if (response.session != null) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const Homepage()),
+          MaterialPageRoute(
+            builder: (context) => Homepage(
+              userIdentifier: _emailController.text.trim(), // Pass email to Homepage
+            ),
+          ),
         );
       } else {
-        throw Exception('Login failed');
+        Fluttertoast.showToast(
+          msg: "Wrong Credentials",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+      Fluttertoast.showToast(
+        msg: "Wrong Credentials",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
       );
     }
   }

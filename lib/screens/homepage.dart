@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'profile_screen.dart';
 import 'saved_books_screen.dart';
 import 'explore_screen.dart';
 
 class Homepage extends StatefulWidget {
-  const Homepage({super.key});
+  final String userIdentifier; // Accept username or email
+
+  const Homepage({super.key, required this.userIdentifier});
 
   @override
   State<Homepage> createState() => _HomepageState();
@@ -19,6 +22,22 @@ class _HomepageState extends State<Homepage> {
     const ProfileScreen(),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _showWelcomeToast(); // Show welcome toast when the homepage is loaded
+  }
+
+  void _showWelcomeToast() {
+    Fluttertoast.showToast(
+      msg: "Hello ${widget.userIdentifier}, Welcome to SmartLibrary",
+      toastLength: Toast.LENGTH_LONG, 
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.deepPurple,
+      textColor: Colors.white,
+    );
+  }
+
   void _onTabTapped(int index) {
     setState(() {
       _currentIndex = index;
@@ -28,6 +47,10 @@ class _HomepageState extends State<Homepage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('SmartLibrary'),
+        backgroundColor: Colors.deepPurple,
+      ),
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

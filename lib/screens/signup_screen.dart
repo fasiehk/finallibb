@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -11,12 +12,43 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  String? _selectedCountry;
+  DateTime? _selectedDob;
+
+  final List<String> _countries = ['USA', 'Canada', 'UK', 'India', 'Pakistan'];
+
+  void _selectDob(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(2000),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _selectedDob) {
+      setState(() {
+        _selectedDob = picked;
+      });
+    }
+  }
 
   void _signup() async {
-    if (_passwordController.text.trim() !=
-        _confirmPasswordController.text.trim()) {
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty ||
+        _confirmPasswordController.text.trim().isEmpty ||
+        _usernameController.text.trim().isEmpty ||
+        _phoneController.text.trim().isEmpty ||
+        _selectedCountry == null ||
+        _selectedDob == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('All fields are required')),
+      );
+      return;
+    }
+
+    if (_passwordController.text.trim() != _confirmPasswordController.text.trim()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Passwords do not match')),
       );
@@ -30,13 +62,21 @@ class _SignupScreenState extends State<SignupScreen> {
       );
 
       if (response.user != null) {
-        // Insert user data into the 'users' table
-        await Supabase.instance.client.from('users').insert({
-          'id': response.user!.id, // Use the user ID from the auth response
+        // Insert user data into the 'user_table'
+        final insertResponse = await Supabase.instance.client.from('user_table').insert({
+          'id': response.user!.id, // Use the UUID from the auth response
           'email': _emailController.text.trim(),
-          'preferences': [], // Initialize preferences as an empty array
-          'saved_books': [], // Initialize saved_books as an empty list
-        });
+          'username': _usernameController.text.trim(),
+          'phone_number': _phoneController.text.trim(),
+          'country': _selectedCountry,
+          'dob': DateFormat('yyyy-MM-dd').format(_selectedDob!),
+          'preferences': [], // Ensure preferences is inserted
+          'saved_books': [], // Ensure saved_books is inserted
+        }).execute();
+
+        if (insertResponse.status != 201) { // Check if the status is not "Created"
+          throw Exception('Failed to insert user data: ${insertResponse.data}');
+        }
 
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -47,7 +87,7 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text('Error: ${e.toString()}')),
       );
     }
   }
@@ -90,16 +130,81 @@ class _SignupScreenState extends State<SignupScreen> {
                               color: Colors.deepPurple),
                         ),
                         const SizedBox(height: 10),
-                        const Text(
-                          'Fill in the details to get started',
-                          style: TextStyle(color: Colors.black54, fontSize: 16),
+                        TextField(
+                          controller: _usernameController,
+                          decoration: InputDecoration(
+                            labelText: 'Username',
+                            prefixIcon: const Icon(Icons.person),
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 20),
                         TextField(
                           controller: _emailController,
                           decoration: InputDecoration(
                             labelText: 'Email',
                             prefixIcon: const Icon(Icons.email),
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: _phoneController,
+                          decoration: InputDecoration(
+                            labelText: 'Phone Number',
+                            prefixIcon: const Icon(Icons.phone),
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        DropdownButtonFormField<String>(
+                          value: _selectedCountry,
+                          items: _countries
+                              .map((country) => DropdownMenuItem(
+                                    value: country,
+                                    child: Text(country),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedCountry = value;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Country',
+                            prefixIcon: const Icon(Icons.flag),
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          readOnly: true,
+                          onTap: () => _selectDob(context),
+                          decoration: InputDecoration(
+                            labelText: _selectedDob == null
+                                ? 'Date of Birth'
+                                : DateFormat('yyyy-MM-dd').format(_selectedDob!),
+                            prefixIcon: const Icon(Icons.calendar_today),
                             filled: true,
                             fillColor: Colors.grey[100],
                             border: OutlineInputBorder(
@@ -158,7 +263,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         const SizedBox(height: 20),
                         TextButton(
                           onPressed: () {
-                            Navigator.pop(context); // Navigate back to the login screen
+                            Navigator.pop(context);
                           },
                           child: const Text(
                             'Already registered? Login',
